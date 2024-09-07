@@ -33,8 +33,12 @@ namespace Flashlight
 
         internal static void Load()
         {
+            MatchFlashlights = BepinPlugin.instance.Config.Bind("PlayerFlashlightColour", "Match", true); matchFlashlights = MatchFlashlights.Value;
             PlayerFlashlightColor = LoadColor("PlayerFlashlightColour");
             OthersFlashlightColor = LoadColor("OthersFlashlightColour");
+            PlayerFlashlightRainbow = BepinPlugin.instance.Config.Bind("RainbowFlashlight", "Player", true); playerFlashlightRainbow = PlayerFlashlightRainbow.Value;
+            OthersFlashlightRainbow = BepinPlugin.instance.Config.Bind("RainbowFlashlight", "Others", true); othersFlashlightRainbow = OthersFlashlightRainbow.Value;
+            RainbowSpeed = BepinPlugin.instance.Config.Bind("RainbowFlashlight", "Speed", 1f); rainbowSpeed = RainbowSpeed.Value;
         }
 
         private static Color LoadColor(string colorPrefix)
@@ -55,6 +59,25 @@ namespace Flashlight
             {
                 UpdateFlashlightColor("OthersFlashlightColour", OthersFlashlightColor);
             }
+            GUILayout.Space(170);
+            if (GUITools.DrawCheckbox("Override Flashlight colour with Others colours", ref matchFlashlights))
+            {
+                MatchFlashlights.Value = matchFlashlights;
+            }
+            GUILayout.BeginHorizontal();
+            if (GUITools.DrawCheckbox("Rainbow Player Flashlight", ref playerFlashlightRainbow))
+            {
+                PlayerFlashlightRainbow.Value = playerFlashlightRainbow;
+            }
+            if (GUITools.DrawCheckbox("Rainbow Others Flashlights", ref othersFlashlightRainbow))
+            {
+                OthersFlashlightRainbow.Value = othersFlashlightRainbow;
+            }
+            GUILayout.EndHorizontal();
+            if (GUITools.DrawSlider(ref rainbowSpeed, 0f, 10f))
+            {
+                RainbowSpeed.Value = rainbowSpeed;
+            }
         }
 
         internal static void UpdateFlashlightColor(string colorPrefix, Color color)
@@ -64,7 +87,10 @@ namespace Flashlight
             BepinPlugin.instance.Config.Bind(colorPrefix, "B", 1f).Value = color.b;
         }
 
-        internal static Color PlayerFlashlightColor;
-        internal static Color OthersFlashlightColor;
+        internal static ConfigEntry<bool> MatchFlashlights; internal static bool matchFlashlights;
+        internal static Color PlayerFlashlightColor; internal static Color OthersFlashlightColor;
+        internal static ConfigEntry<bool> PlayerFlashlightRainbow; internal static bool playerFlashlightRainbow;
+        internal static ConfigEntry<bool> OthersFlashlightRainbow; internal static bool othersFlashlightRainbow;
+        internal static ConfigEntry<float> RainbowSpeed; internal static float rainbowSpeed;
     }
 }

@@ -13,18 +13,25 @@ namespace Flashlight
         {
             if (playerFlashlights.TryGetValue(__instance, out Light flashlight))
             {
-                if (__instance is LocalPlayer)
+                if (__instance is LocalPlayer && !Configs.matchFlashlights)
                 {
                     flashlight.color = Configs.PlayerFlashlightColor;
+                    if (Configs.playerFlashlightRainbow) flashlight.color = GetRainbowColor();
                     return;
                 }
                 flashlight.color = Configs.OthersFlashlightColor;
+                if (Configs.othersFlashlightRainbow) flashlight.color = GetRainbowColor();
             }
             else
             {
                 Light Flashlight = __instance.GameObject.GetComponentInChildren<Light>();
                 if (Flashlight != null) playerFlashlights.Add(__instance, Flashlight);
             }
+        }
+        private static Color GetRainbowColor()
+        {
+            float hue = (Time.time * Configs.rainbowSpeed) % 1f;
+            return Color.HSVToRGB(hue, 1f, 1f);
         }
     }
 }

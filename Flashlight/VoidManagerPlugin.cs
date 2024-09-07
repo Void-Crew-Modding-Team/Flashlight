@@ -4,7 +4,7 @@ namespace Flashlight
 {
     public class VoidManagerPlugin : VoidManager.VoidPlugin
     {
-        public override MultiplayerType MPType => MultiplayerType.All;
+        public override MultiplayerType MPType => MultiplayerType.Client;
 
         public override string Author => MyPluginInfo.PLUGIN_AUTHORS;
 
