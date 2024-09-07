@@ -112,9 +112,9 @@ namespace Flashlight
         
         internal static void DrawProfile((float,float) loc, ProfileData profile) // new Rect(0, 130, 450, 315)
         {
-            GUILayout.BeginArea(new Rect(loc.Item1, loc.Item2, 466, 315), "", "Box");
+            GUILayout.BeginArea(new Rect(loc.Item1, loc.Item2, 466, 345), "", "Box");
             GUILayout.Label(profile.Name);
-            if (GUITools.DrawColorPicker(new Rect(4, 30, 442, 160), "Colour", ref profile.Colour, Configs.DefaultColor, false, 0f, 1f))
+            if (GUITools.DrawColorPicker(new Rect(4, 30, 458, 160), "Colour", ref profile.Colour, Configs.DefaultColor, false, 0f, 1f))
             {
                 UpdateColor("Colour", ref profile.Colour, profile.ConfigFile);
             }
@@ -123,8 +123,12 @@ namespace Flashlight
             DrawLabeledSlider("Angle", ref profile.Angle, 15f, 160, DefaultAngle);
             DrawLabeledSlider("Range", ref profile.Range, 0, (PrecisionMode.Value ? 25 : 100), DefaultRange);
             DrawLabeledSlider("Intensity", ref profile.Intensity, 0, (PrecisionMode.Value ? 1000 : 10000), DefaultIntensity);
+            GUITools.DrawCheckbox("Precision for Range & Intensity", ref PrecisionMode);
             GUITools.DrawCheckbox("Area Of Effect Flashlight", ref profile.AOE);
+            GUILayout.BeginHorizontal();
             GUITools.DrawCheckbox("Rainbow", ref profile.Rainbow);
+            DrawLabeledSlider("Speed", ref RainbowSpeed, 0.001f, 0.4f, 0.125f);
+            GUILayout.EndHorizontal();
             GUILayout.EndVertical();
             GUILayout.EndArea();
         }
