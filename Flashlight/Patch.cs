@@ -18,21 +18,21 @@ namespace Flashlight
             {
                 if (player.GetPhotonView().IsMine && Configs.SeperateFlashlights.Value)
                 {
-                    flashlight.color = Configs.PlayerFlashlightColor;
-                    if (Configs.PlayerFlashlightRainbow.Value) flashlight.color = GetRainbowColor();
-                    flashlight.spotAngle = Configs.PlayerFlashlightAngle.Value;
-                    flashlight.range = Configs.PlayerFlashlightRange.Value;
-                    flashlight.intensity = Configs.PlayerFlashlightIntensity.Value;
-                    if (Configs.PlayerFlashlightAOE.Value) flashlight.type = LightType.Point;
+                    flashlight.color = Configs.playerFlashlight.Colour;
+                    if (Configs.playerFlashlight.Rainbow.Value) flashlight.color = GetRainbowColor();
+                    flashlight.spotAngle = Configs.playerFlashlight.Angle.Value;
+                    flashlight.range = Configs.playerFlashlight.Range.Value;
+                    flashlight.intensity = Configs.playerFlashlight.Intensity.Value;
+                    if (Configs.playerFlashlight.AOE.Value) flashlight.type = LightType.Point;
                     else flashlight.type = LightType.Spot;
                     return;
                 }
-                flashlight.color = Configs.OthersFlashlightColor;
-                if (Configs.OthersFlashlightRainbow.Value) flashlight.color = GetRainbowColor();
-                flashlight.spotAngle = Configs.OthersFlashlightAngle.Value;
-                flashlight.range = Configs.OthersFlashlightRange.Value;
-                flashlight.intensity = Configs.OthersFlashlightIntensity.Value;
-                if (Configs.OthersFlashlightAOE.Value) flashlight.type = LightType.Point;
+                flashlight.color = Configs.othersFlashlight.Colour;
+                if (Configs.othersFlashlight.Rainbow.Value) flashlight.color = GetRainbowColor();
+                flashlight.spotAngle = Configs.othersFlashlight.Angle.Value;
+                flashlight.range = Configs.othersFlashlight.Range.Value;
+                flashlight.intensity = Configs.othersFlashlight.Intensity.Value;
+                if (Configs.othersFlashlight.AOE.Value) flashlight.type = LightType.Point;
                 else flashlight.type = LightType.Spot;
             }
             else
