@@ -6,32 +6,43 @@
 
 Version [ModVersion]  
 For Game Version [GameVersion]  
-Developed by [Authors]  
+Developed by [Authors]
 Requires VoidManager [VoidManagerVersion]
 
 
 ---------------------
 
-### 💡 Function(s)
+### 💡 Function - [Description]
 
-- [Description]
+- Can change Player flashlight options  (Locally visible)
+- Can change Other players flashlight options (Locally visible)
+
+Flashlight options
+	- Colour
+	- Radius
+	- Range
+	- Intensity
+	- Area of effect Flashlight
+	- Rainbow mode (Synced)
+
+- Flashlight options are saved as profiles.
+- Flashlight profiles can be imported or exported.
 
 ### 🎮 Client Usage
 
-- 
+- Enter the F5 Menu labelled `[UserModName] Config` to customise flashlights.
+
+### 👥 Flashlight import / export
+
+Drag and drop `[ProfileName].cfg` into `Void Crew\BepInEx\config\FlashlightProfiles`
+
+For exporting, take said file and share it.
+
 
 ### 👥 Multiplayer Functionality
 
-
-# Note to mod developer: Remove all but one, and describe any custom functionality.
 - ✅ Client
-  - Only the client needs this mod.
-- ✅ Host
-  - Only the host needs this mod.
-- ✅ Session
-  - Requires the room to be marked as Mod_Session.
-- ✅ All
-  - All players must have this mod installed.
+  - Only the client needs and can see this mods effects.
 
 ---------------------
 

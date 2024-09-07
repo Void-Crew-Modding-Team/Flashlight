@@ -1,9 +1,15 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using Gameplay.Chat;
 using HarmonyLib;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Profiling;
 using VoidManager.CustomGUI;
 using VoidManager.Utilities;
 
@@ -21,84 +27,133 @@ namespace Flashlight
         {
             instance = this;
             Log = Logger;
+            profilesDirectiory = Path.Combine(Paths.ConfigPath, "FlashlightProfiles");
+            Directory.CreateDirectory(profilesDirectiory);
             Configs.Load();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
         }
+        internal static string profilesDirectiory;
+    }
+    internal class ProfileData
+    {
+        public string Name;
+        public ConfigFile ConfigFile;
+        public Color Colour;
+        public ConfigEntry<float> Angle;
+        public ConfigEntry<float> Range;
+        public ConfigEntry<float> Intensity;
+        public ConfigEntry<bool> AOE;
+        public ConfigEntry<bool> Rainbow;
     }
     public class Configs : ModSettingsMenu
     {
-        public override string Name() => $"{MyPluginInfo.PLUGIN_NAME} Config";
+        public override string Name()
+        {
+            if (HomePage)
+                return $"{MyPluginInfo.PLUGIN_NAME} Config - Home Page";
+            else if (SelectedProfile == null)
+                return $"{MyPluginInfo.PLUGIN_NAME} Config - Profile List";
+            else
+                return $"{MyPluginInfo.PLUGIN_NAME} Config - Editing Profile: {SelectedProfile}";
+        }
         
         private static Color DefaultColor = Color.white;
         private static float DefaultAngle = 45.1f;
         private static float DefaultRange = 25;
         private static float DefaultIntensity = 416.34f;
+
+        internal static ConfigEntry<string> PlayerFlashlightProfile;  internal static ProfileData playerFlashlight;
+        internal static ConfigEntry<string> OthersFlashlightProfile;  internal static ProfileData othersFlashlight;
+
         internal static void Load()
         {
-            SeperateFlashlights = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Enabled", false);
+            SeperateFlashlights = BepinPlugin.instance.Config.Bind("SeperateFlashlights", "Enabled", true);
             PrecisionMode = BepinPlugin.instance.Config.Bind("PrecisionMode", "Enabled", true);
-            PlayerFlashlightColor = LoadColor("PlayerFlashlight");
-            OthersFlashlightColor = LoadColor("OthersFlashlight");
-            PlayerFlashlightRainbow = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Rainbow", false);
-            OthersFlashlightRainbow = BepinPlugin.instance.Config.Bind("OthersFlashlight", "Rainbow", false);
             RainbowSpeed = BepinPlugin.instance.Config.Bind("RainbowFlashlight", "Speed", 0.125f);
-            PlayerFlashlightAOE = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "AOE", false);
-            OthersFlashlightAOE = BepinPlugin.instance.Config.Bind("OthersFlashlight", "AOE", false);
-            PlayerFlashlightAngle = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Angle", DefaultAngle);
-            OthersFlashlightAngle = BepinPlugin.instance.Config.Bind("OthersFlashlight", "Angle", DefaultAngle);
-            PlayerFlashlightRange = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Range", DefaultRange);
-            OthersFlashlightRange = BepinPlugin.instance.Config.Bind("OthersFlashlight", "Range", DefaultRange);
-            PlayerFlashlightIntensity = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Intensity", DefaultIntensity);
-            OthersFlashlightIntensity = BepinPlugin.instance.Config.Bind("OthersFlashlight", "Intensity", DefaultIntensity);
+            PlayerFlashlightProfile = BepinPlugin.instance.Config.Bind("Profile", "Player", "default");
+            playerFlashlight = Configs.LoadProfile(PlayerFlashlightProfile.Value);
+            OthersFlashlightProfile = BepinPlugin.instance.Config.Bind("Profile", "Others", "default");
+            othersFlashlight = Configs.LoadProfile(OthersFlashlightProfile.Value);
         }
 
-        private static Color LoadColor(string colorPrefix)
+        internal static ProfileData LoadProfile(string profileName)
         {
-            var colorR = BepinPlugin.instance.Config.Bind(colorPrefix, "R", 1f);
-            var colorG = BepinPlugin.instance.Config.Bind(colorPrefix, "G", 1f);
-            var colorB = BepinPlugin.instance.Config.Bind(colorPrefix, "B", 1f);
+            string configPath = Path.Combine(BepinPlugin.profilesDirectiory, $"{profileName}.cfg");
+            ConfigFile currentConfigFile = new ConfigFile(configPath, true);
+            ProfileData profile = new ProfileData();
+            profile.Name = profileName;
+            profile.ConfigFile = currentConfigFile;
+            profile.Colour = LoadColor("Colour", currentConfigFile);
+            profile.Angle = currentConfigFile.Bind("Settings", "Angle", DefaultAngle);
+            profile.Range = currentConfigFile.Bind("Settings", "Range", DefaultRange);
+            profile.Intensity = currentConfigFile.Bind("Settings", "Intensity", DefaultIntensity);
+            profile.AOE = currentConfigFile.Bind("Settings", "AOE", false);
+            profile.Rainbow = currentConfigFile.Bind("Settings", "Rainbow", false);
+            BepinPlugin.Log.LogInfo($"Loaded profile: {profileName}");
+            return profile;
+        }
+
+        private static Color LoadColor(string colorPrefix, ConfigFile currentConfigFile = null)
+        {
+            if (currentConfigFile == null) currentConfigFile = BepinPlugin.instance.Config;
+            var colorR = currentConfigFile.Bind(colorPrefix, "R", 1f);
+            var colorG = currentConfigFile.Bind(colorPrefix, "G", 1f);
+            var colorB = currentConfigFile.Bind(colorPrefix, "B", 1f);
             return new Color(colorR.Value, colorG.Value, colorB.Value);
         }
-
-        public override void Draw()
+        internal static void UpdateColor(string colorPrefix, ref Color color, ConfigFile currentConfigFile = null)
         {
-
-            GUITools.DrawCheckbox("Seperate Flashlight Options For Local Player", ref SeperateFlashlights);
-            DrawLabeledSlider("Rainbow Flashlight Speed", ref RainbowSpeed, 0f, 0.4f, 0.125f);
-            GUITools.DrawCheckbox("Precision Range and Intensity", ref PrecisionMode);
-
-            GUILayout.BeginArea(new Rect(0, 130, 450, 315), "", "Box");
-            GUILayout.Label("Local Flashlight");
-            if (GUITools.DrawColorPicker(new Rect(4, 30, 442, 160), "Colour", ref Configs.PlayerFlashlightColor, Configs.DefaultColor, false, 0f, 1f))
+            if (currentConfigFile == null) currentConfigFile = BepinPlugin.instance.Config;
+            currentConfigFile.Bind(colorPrefix, "R", 1f).Value = color.r;
+            currentConfigFile.Bind(colorPrefix, "G", 1f).Value = color.g;
+            currentConfigFile.Bind(colorPrefix, "B", 1f).Value = color.b;
+        }
+        
+        internal static void DrawProfile((float,float) loc, ProfileData profile) // new Rect(0, 130, 450, 315)
+        {
+            GUILayout.BeginArea(new Rect(loc.Item1, loc.Item2, 466, 345), "", "Box");
+            GUILayout.Label(profile.Name);
+            if (GUITools.DrawColorPicker(new Rect(4, 30, 458, 160), "Colour", ref profile.Colour, Configs.DefaultColor, false, 0f, 1f))
             {
-                UpdateFlashlightColor("PlayerFlashlight", PlayerFlashlightColor);
+                UpdateColor("Colour", ref profile.Colour, profile.ConfigFile);
             }
             GUILayout.Space(160);
             GUILayout.BeginVertical("Box");
-            DrawLabeledSlider("Angle", ref PlayerFlashlightAngle, 15f, 160, DefaultAngle);
-            DrawLabeledSlider("Range", ref PlayerFlashlightRange, 0, (PrecisionMode.Value? 25 : 100), DefaultRange);
-            DrawLabeledSlider("Intensity", ref PlayerFlashlightIntensity, 0, (PrecisionMode.Value ? 1000 : 10000), DefaultIntensity);
-            GUITools.DrawCheckbox("Area Of Effect Flashlight", ref PlayerFlashlightAOE);
-            GUITools.DrawCheckbox("Rainbow", ref PlayerFlashlightRainbow);
+            DrawLabeledSlider("Angle", ref profile.Angle, 15f, 160, DefaultAngle);
+            DrawLabeledSlider("Range", ref profile.Range, 0, (PrecisionMode.Value ? 25 : 100), DefaultRange);
+            DrawLabeledSlider("Intensity", ref profile.Intensity, 0, (PrecisionMode.Value ? 1000 : 10000), DefaultIntensity);
+            GUITools.DrawCheckbox("Precision for Range & Intensity", ref PrecisionMode);
+            GUITools.DrawCheckbox("Area Of Effect Flashlight", ref profile.AOE);
+            GUILayout.BeginHorizontal();
+            GUITools.DrawCheckbox("Rainbow", ref profile.Rainbow);
+            DrawLabeledSlider("Speed", ref RainbowSpeed, 0.001f, 0.4f, 0.125f);
+            GUILayout.EndHorizontal();
             GUILayout.EndVertical();
             GUILayout.EndArea();
+        }
 
-            GUILayout.BeginArea(new Rect(458, 130, 450, 315), "", "Box");
-            GUILayout.Label("Other Flashlights");
-            if (GUITools.DrawColorPicker(new Rect(4, 30, 442, 160), "Colour", ref Configs.OthersFlashlightColor, Configs.DefaultColor, false, 0f, 1f))
+        public static bool DrawTextField(string label, ref string value, string defaultValue = null, float minWidth = 80)
+        {
+            bool changed = false;
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"{label}: ");
+            value = GUILayout.TextField(value, GUILayout.MinWidth(minWidth));
+            GUILayout.FlexibleSpace();
+            if (defaultValue != null)
             {
-                UpdateFlashlightColor("OthersFlashlight", OthersFlashlightColor);
+                if (GUILayout.Button("Reset"))
+                {
+                    value = defaultValue;
+                    changed = true;
+                }
             }
-            GUILayout.Space(160);
-            GUILayout.BeginVertical("Box");
-            DrawLabeledSlider("Angle", ref OthersFlashlightAngle, 15f, 160, DefaultAngle);
-            DrawLabeledSlider("Range", ref OthersFlashlightRange, 0, (PrecisionMode.Value ? 25 : 100), DefaultRange);
-            DrawLabeledSlider("Intensity", ref OthersFlashlightIntensity, 0, (PrecisionMode.Value ? 1000 : 10000), DefaultIntensity);
-            GUITools.DrawCheckbox("Area Of Effect Flashlight", ref OthersFlashlightAOE);
-            GUITools.DrawCheckbox("Rainbow", ref OthersFlashlightRainbow);
-            GUILayout.EndVertical();
-            GUILayout.EndArea();
+            if (GUILayout.Button("Create"))
+            {
+                changed = true;
+            }
+            GUILayout.EndHorizontal();
+            return changed;
         }
 
         public static void DrawLabeledSlider(string label, ref ConfigEntry<float> value, float minValue, float maxValue, float defaultValue)
@@ -113,21 +168,79 @@ namespace Flashlight
             GUILayout.EndHorizontal();
         }
 
-        internal static void UpdateFlashlightColor(string colorPrefix, Color color)
+        private static Dictionary<string, ProfileData> Profiles = new Dictionary<string, ProfileData>();
+        private static ProfileData SelectedProfile = null;
+        private static bool HomePage = true;
+        public override void Draw()
         {
-            BepinPlugin.instance.Config.Bind(colorPrefix, "R", 1f).Value = color.r;
-            BepinPlugin.instance.Config.Bind(colorPrefix, "G", 1f).Value = color.g;
-            BepinPlugin.instance.Config.Bind(colorPrefix, "B", 1f).Value = color.b;
+            if (HomePage) DrawHomePage();
+            else if (SelectedProfile == null) DrawProfileList();
+            else
+            {
+                DrawProfile();
+            }
+        }
+        private static void DrawHomePage()
+        {
+            if (GUILayout.Button("Browse Flashlight Profiles")) { SelectedProfile = null; HomePage = false; }
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button($"Player Flashlight: {PlayerFlashlightProfile.Value}")) { SelectedProfile = playerFlashlight; HomePage = false; }
+            if (GUILayout.Button($"Others Flashlight: {OthersFlashlightProfile.Value}")) { SelectedProfile = othersFlashlight; HomePage = false; }
+            GUILayout.EndHorizontal();
+
+            DrawProfile((4,130), playerFlashlight);
+            DrawProfile((476, 130), othersFlashlight);
+        } // 494
+        private static void DrawProfile()
+        {
+            if (GUILayout.Button("Back to Flashlight Profile list")) SelectedProfile = null;
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button($"Player Flashlight: {PlayerFlashlightProfile.Value}")) SelectedProfile = playerFlashlight; HomePage = false;
+            if (GUILayout.Button($"Others Flashlight: {OthersFlashlightProfile.Value}")) SelectedProfile = othersFlashlight; HomePage = false;
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Assign"))
+            {
+                PlayerFlashlightProfile.Value = SelectedProfile.Name;
+                playerFlashlight = SelectedProfile;
+            }
+            if (GUILayout.Button("Assign"))
+            {
+                OthersFlashlightProfile.Value = SelectedProfile.Name;
+                othersFlashlight = SelectedProfile;
+            }
+            GUILayout.EndHorizontal();
+
+            DrawProfile((4, 130), SelectedProfile);
+        }
+
+        private static string searchValue = "";
+        private static void DrawProfileList()
+        {
+            if (GUILayout.Button("Home")) { SelectedProfile = null; HomePage = true; }
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"Player Flashlight: {PlayerFlashlightProfile.Value}");
+            GUILayout.Label($"Others Flashlight: {OthersFlashlightProfile.Value}");
+            GUILayout.EndHorizontal();
+            string[] profileFiles = Directory.GetFiles(BepinPlugin.profilesDirectiory, "*.cfg");
+            if (DrawTextField("Search", ref searchValue, "", 200))
+            {
+                Profiles.Add(searchValue, LoadProfile(searchValue));
+            }
+            foreach (string filePath in profileFiles)
+            {
+                string profileName = Path.GetFileNameWithoutExtension(filePath);
+                if (!Profiles.ContainsKey(profileName)) Profiles.Add(profileName, LoadProfile(profileName));
+                if (!profileName.ToLower().Contains(searchValue.ToLower()) && searchValue != "") return;
+                if (GUILayout.Button(profileName))
+                {
+                    SelectedProfile = Profiles[profileName];
+                }
+            }
         }
 
         internal static ConfigEntry<bool> SeperateFlashlights;
         internal static ConfigEntry<bool> PrecisionMode;
-        internal static Color PlayerFlashlightColor; internal static Color OthersFlashlightColor;
-        internal static ConfigEntry<bool> PlayerFlashlightRainbow; internal static ConfigEntry<bool> OthersFlashlightRainbow;
-        internal static ConfigEntry<bool> PlayerFlashlightAOE; internal static ConfigEntry<bool> OthersFlashlightAOE;
         internal static ConfigEntry<float> RainbowSpeed;
-        internal static ConfigEntry<float> PlayerFlashlightAngle; internal static ConfigEntry<float> OthersFlashlightAngle;
-        internal static ConfigEntry<float> PlayerFlashlightRange; internal static ConfigEntry<float> OthersFlashlightRange;
-        internal static ConfigEntry<float> PlayerFlashlightIntensity; internal static ConfigEntry<float> OthersFlashlightIntensity;
     }
 }

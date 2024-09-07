@@ -6,7 +6,7 @@ namespace Flashlight
         public const string PLUGIN_GUID = $"{PLUGIN_ORIGINAL_AUTHOR}.{PLUGIN_NAME}";
         public const string PLUGIN_NAME = "Flashlight";
         public const string USERS_PLUGIN_NAME = "Flashlight";
-        public const string PLUGIN_VERSION = "1.0.0";
+        public const string PLUGIN_VERSION = "1.1.1";
         public const string PLUGIN_DESCRIPTION = "Allows flashlight customisation. Client Side.";
         public const string PLUGIN_ORIGINAL_AUTHOR = "Mest";
         public const string PLUGIN_AUTHORS = "Mest";
