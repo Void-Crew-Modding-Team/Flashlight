@@ -13,7 +13,7 @@ namespace Flashlight
         {
             if (playerFlashlights.TryGetValue(__instance, out Light flashlight))
             {
-                if (__instance is LocalPlayer && !Configs.MatchFlashlights.Value)
+                if (__instance is LocalPlayer && Configs.SeperateFlashlights.Value)
                 {
                     flashlight.color = Configs.PlayerFlashlightColor;
                     if (Configs.PlayerFlashlightRainbow.Value) flashlight.color = GetRainbowColor();

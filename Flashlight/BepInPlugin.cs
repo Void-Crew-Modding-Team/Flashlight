@@ -29,16 +29,27 @@ namespace Flashlight
     public class Configs : ModSettingsMenu
     {
         public override string Name() => $"{MyPluginInfo.PLUGIN_NAME} Config";
-        internal static Color DefaultColor = Color.white;
-
+        
+        private static Color DefaultColor = Color.white;
+        private static float DefaultAngle = 45.1f;
+        private static float DefaultRange = 25;
+        private static float DefaultIntensity = 416.34f;
         internal static void Load()
         {
-            MatchFlashlights = BepinPlugin.instance.Config.Bind("PlayerFlashlightColour", "Match", true);
-            PlayerFlashlightColor = LoadColor("PlayerFlashlightColour");
-            OthersFlashlightColor = LoadColor("OthersFlashlightColour");
-            PlayerFlashlightRainbow = BepinPlugin.instance.Config.Bind("RainbowFlashlight", "Player", true);
-            OthersFlashlightRainbow = BepinPlugin.instance.Config.Bind("RainbowFlashlight", "Others", true);
+            SeperateFlashlights = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Enabled", false);
+            PlayerFlashlightColor = LoadColor("PlayerFlashlight");
+            OthersFlashlightColor = LoadColor("OthersFlashlight");
+            PlayerFlashlightRainbow = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Rainbow", false);
+            OthersFlashlightRainbow = BepinPlugin.instance.Config.Bind("OthersFlashlight", "Rainbow", false);
             RainbowSpeed = BepinPlugin.instance.Config.Bind("RainbowFlashlight", "Speed", 1f);
+            PlayerFlashlightAOE = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "AOE", false);
+            OthersFlashlightAOE = BepinPlugin.instance.Config.Bind("OthersFlashlight", "AOE", false);
+            PlayerFlashlightAngle = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Angle", DefaultAngle);
+            OthersFlashlightAngle = BepinPlugin.instance.Config.Bind("OthersFlashlight", "Angle", DefaultAngle);
+            PlayerFlashlightRange = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Range", DefaultRange);
+            OthersFlashlightRange = BepinPlugin.instance.Config.Bind("OthersFlashlight", "Range", DefaultRange);
+            PlayerFlashlightIntensity = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Intensity", DefaultIntensity);
+            OthersFlashlightIntensity = BepinPlugin.instance.Config.Bind("OthersFlashlight", "Intensity", DefaultIntensity);
         }
 
         private static Color LoadColor(string colorPrefix)
@@ -51,21 +62,54 @@ namespace Flashlight
 
         public override void Draw()
         {
-            if (GUITools.DrawColorPicker(new Rect(8, 50, 240, 160), "Player Flashlight Colour", ref Configs.PlayerFlashlightColor, Configs.DefaultColor, false, 0f, 5f))
+
+            GUITools.DrawCheckbox("Seperate Flashlight Options For Local Player", ref SeperateFlashlights);
+            DrawLabeledSlider("Rainbow Flashlight Speed", ref RainbowSpeed, 0f, 10f, 1f);
+
+
+            GUILayout.BeginArea(new Rect(0, 120, 450, 315), "", "Box");
+            GUILayout.Label("Local Flashlight");
+            if (GUITools.DrawColorPicker(new Rect(4, 30, 442, 160), "Colour", ref Configs.PlayerFlashlightColor, Configs.DefaultColor, false, 0f, 1f))
             {
                 UpdateFlashlightColor("PlayerFlashlightColour", PlayerFlashlightColor);
             }
-            if (GUITools.DrawColorPicker(new Rect(256, 50, 240, 160), "Others Flashlight Colour", ref Configs.OthersFlashlightColor, Configs.DefaultColor, false, 0f, 5f))
+            GUILayout.Space(160);
+            GUILayout.BeginVertical("Box");
+            DrawLabeledSlider("Angle", ref PlayerFlashlightAngle, 15f, 360f, DefaultAngle);
+            DrawLabeledSlider("Range", ref PlayerFlashlightRange, 0, 10000, DefaultRange);
+            DrawLabeledSlider("Intensity", ref PlayerFlashlightIntensity, 0, 10000, DefaultIntensity);
+            GUITools.DrawCheckbox("Area Of Effect Flashlight", ref PlayerFlashlightAOE);
+            GUITools.DrawCheckbox("Rainbow", ref PlayerFlashlightRainbow);
+            GUILayout.EndVertical();
+            GUILayout.EndArea();
+
+            GUILayout.BeginArea(new Rect(458, 120, 450, 315), "", "Box");
+            GUILayout.Label("Other Flashlights");
+            if (GUITools.DrawColorPicker(new Rect(4, 30, 442, 160), "Colour", ref Configs.OthersFlashlightColor, Configs.DefaultColor, false, 0f, 1f))
             {
                 UpdateFlashlightColor("OthersFlashlightColour", OthersFlashlightColor);
             }
-            GUILayout.Space(170);
-            GUITools.DrawCheckbox("Override Flashlight colour with Others colours", ref MatchFlashlights);
+            GUILayout.Space(160);
+            GUILayout.BeginVertical("Box");
+            DrawLabeledSlider("Angle", ref OthersFlashlightAngle, 15f, 360f, DefaultAngle);
+            DrawLabeledSlider("Range", ref OthersFlashlightRange, 0, 10000, DefaultRange);
+            DrawLabeledSlider("Intensity", ref OthersFlashlightIntensity, 0, 10000, DefaultIntensity);
+            GUITools.DrawCheckbox("Area Of Effect Flashlight", ref OthersFlashlightAOE);
+            GUITools.DrawCheckbox("Rainbow", ref OthersFlashlightRainbow);
+            GUILayout.EndVertical();
+            GUILayout.EndArea();
+        }
+
+        public static void DrawLabeledSlider(string label, ref ConfigEntry<float> value, float minValue, float maxValue, float defaultValue)
+        {
             GUILayout.BeginHorizontal();
-            GUITools.DrawCheckbox("Rainbow Player Flashlight", ref PlayerFlashlightRainbow);
-            GUITools.DrawCheckbox("Rainbow Others Flashlights", ref OthersFlashlightRainbow);
+            GUILayout.Label($"{label} {value.Value:F2}", GUILayout.Width(230));
+            if (GUILayout.Button("Reset", GUILayout.Width(60)))
+            {
+                value.Value = defaultValue;
+            }
+            GUITools.DrawSlider(ref value, minValue, maxValue);
             GUILayout.EndHorizontal();
-            GUITools.DrawSlider(ref RainbowSpeed, 0f, 10f);
         }
 
         internal static void UpdateFlashlightColor(string colorPrefix, Color color)
@@ -75,10 +119,13 @@ namespace Flashlight
             BepinPlugin.instance.Config.Bind(colorPrefix, "B", 1f).Value = color.b;
         }
 
-        internal static ConfigEntry<bool> MatchFlashlights;
+        internal static ConfigEntry<bool> SeperateFlashlights;
         internal static Color PlayerFlashlightColor; internal static Color OthersFlashlightColor;
-        internal static ConfigEntry<bool> PlayerFlashlightRainbow;
-        internal static ConfigEntry<bool> OthersFlashlightRainbow;
+        internal static ConfigEntry<bool> PlayerFlashlightRainbow; internal static ConfigEntry<bool> OthersFlashlightRainbow;
+        internal static ConfigEntry<bool> PlayerFlashlightAOE; internal static ConfigEntry<bool> OthersFlashlightAOE;
         internal static ConfigEntry<float> RainbowSpeed;
+        internal static ConfigEntry<float> PlayerFlashlightAngle; internal static ConfigEntry<float> OthersFlashlightAngle;
+        internal static ConfigEntry<float> PlayerFlashlightRange; internal static ConfigEntry<float> OthersFlashlightRange;
+        internal static ConfigEntry<float> PlayerFlashlightIntensity; internal static ConfigEntry<float> OthersFlashlightIntensity;
     }
 }
