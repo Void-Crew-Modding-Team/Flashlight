@@ -101,7 +101,7 @@ namespace Flashlight
             currentConfigFile.Bind(colorPrefix, "G", 1f).Value = color.g;
             currentConfigFile.Bind(colorPrefix, "B", 1f).Value = color.b;
         }
-        /*
+        
         internal static void DrawProfile((float,float) loc, ProfileData profile) // new Rect(0, 130, 450, 315)
         {
             GUILayout.BeginArea(new Rect(loc.Item1, loc.Item2, 450, 315), "", "Box");
@@ -121,81 +121,6 @@ namespace Flashlight
             GUILayout.EndArea();
         }
 
-        private static void DrawProfilePage(string profileName, ProfileData profile)
-        {
-            if (GUILayout.Button("Back")) isProfilePageOpen = false;
-            DrawProfile((0, 130), profile);
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Player"))
-            {
-                playerFlashlight = profile;
-                PlayerFlashlightProfile.Value = profileName;
-            }
-            if (GUILayout.Button("Others"))
-            {
-                othersFlashlight = profile;
-                OthersFlashlightProfile.Value = profileName;
-            }
-            GUILayout.EndHorizontal();
-        }
-
-        private string searchValue;
-        private Dictionary<string, ProfileData> profiles;
-        public virtual void OnOpen()
-        {
-            searchValue = "";
-            profiles = new Dictionary<string, ProfileData>();
-            string[] profileFiles = Directory.GetFiles(BepinPlugin.profilesDirectiory, "*.cfg");
-            foreach (string filePath in profileFiles)
-            {
-                string profileName = Path.GetFileNameWithoutExtension(filePath);
-                ProfileData profileData = LoadProfile(profileName);
-                profiles.Add(filePath, profileData);
-            }
-            BepinPlugin.Log.LogInfo($"Loaded {profileFiles.Count()} Profiles");
-        }
-
-        public override void Draw()
-        {
-            //GUITools.DrawCheckbox("Seperate Flashlight Options For Local Player", ref SeperateFlashlights);
-            GUILayout.BeginHorizontal();
-            GUILayout.Label($"Player Flashlight: {PlayerFlashlightProfile.Value}");
-            GUILayout.Label($"Others Flashlight: {OthersFlashlightProfile.Value}");
-            GUILayout.EndHorizontal();
-            DrawLabeledSlider("Rainbow Flashlight Speed", ref RainbowSpeed, 0f, 0.4f, 0.125f);
-            GUITools.DrawCheckbox("Precision Range and Intensity", ref PrecisionMode);
-
-            if (isProfilePageOpen && selectedProfile != null)
-            {
-                DrawProfilePage(selectedProfileName, selectedProfile);
-            }
-            else
-            {
-                if (DrawTextField("Search", ref searchValue, ""))
-                {
-                    profiles.Add(searchValue, LoadProfile(searchValue));
-                }
-                foreach (string profileName in profiles.Keys)
-                {
-                    if (profileName.Contains(searchValue) || searchValue == "")
-                    {
-                        if (GUILayout.Button(profileName))
-                        {
-                            selectedProfileName = profileName;
-                            selectedProfile = profiles[profileName];
-                            isProfilePageOpen = true;
-                        }
-                    }
-                }
-            }
-            //DrawProfile((0, 130), playerFlashlight);
-            //DrawProfile((458, 130), othersFlashlight);
-        }
-
-        private static bool isProfilePageOpen = false;
-        private static ProfileData selectedProfile = null;
-        private static string selectedProfileName = "";
-        */
         public static bool DrawTextField(string label, ref string value, string defaultValue = null, float minWidth = 80)
         {
             bool changed = false;
@@ -233,20 +158,33 @@ namespace Flashlight
 
         private static Dictionary<string, ProfileData> Profiles = new Dictionary<string, ProfileData>();
         private static ProfileData SelectedProfile = null;
+        private static bool HomePage = true;
         public override void Draw()
         {
-            if (SelectedProfile == null) DrawProfileList();
+            if (HomePage) DrawHomePage();
+            else if (SelectedProfile == null) DrawProfileList();
             else
             {
                 DrawProfile();
             }
         }
+        private static void DrawHomePage()
+        {
+            if (GUILayout.Button("Browse Flashlight Profiles")) { SelectedProfile = null; HomePage = false; }
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button($"Player Flashlight: {PlayerFlashlightProfile.Value}")) { SelectedProfile = playerFlashlight; HomePage = false; }
+            if (GUILayout.Button($"Others Flashlight: {OthersFlashlightProfile.Value}")) { SelectedProfile = othersFlashlight; HomePage = false; }
+            GUILayout.EndHorizontal();
+
+            DrawProfile((0,130), playerFlashlight);
+            DrawProfile((458, 130), othersFlashlight);
+        }
         private static void DrawProfile()
         {
             if (GUILayout.Button("Back to Flashlight Profile list")) SelectedProfile = null;
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"Player Flashlight: {PlayerFlashlightProfile.Value}");
-            GUILayout.Label($"Others Flashlight: {OthersFlashlightProfile.Value}");
+            if (GUILayout.Button($"Player Flashlight: {PlayerFlashlightProfile.Value}")) SelectedProfile = playerFlashlight; HomePage = false;
+            if (GUILayout.Button($"Others Flashlight: {OthersFlashlightProfile.Value}")) SelectedProfile = othersFlashlight; HomePage = false;
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Assign"))
@@ -261,26 +199,13 @@ namespace Flashlight
             }
             GUILayout.EndHorizontal();
 
-            GUILayout.BeginArea(new Rect(0, 130, 450, 315), "", "Box");
-            GUILayout.Label(SelectedProfile.Name);
-            if (GUITools.DrawColorPicker(new Rect(4, 30, 442, 160), "Colour", ref SelectedProfile.Colour, Configs.DefaultColor, false, 0f, 1f))
-            {
-                UpdateColor("Colour", ref SelectedProfile.Colour, SelectedProfile.ConfigFile);
-            }
-            GUILayout.Space(160);
-            GUILayout.BeginVertical("Box");
-            DrawLabeledSlider("Angle", ref SelectedProfile.Angle, 15f, 160, DefaultAngle);
-            DrawLabeledSlider("Range", ref SelectedProfile.Range, 0, (PrecisionMode.Value ? 25 : 100), DefaultRange);
-            DrawLabeledSlider("Intensity", ref SelectedProfile.Intensity, 0, (PrecisionMode.Value ? 1000 : 10000), DefaultIntensity);
-            GUITools.DrawCheckbox("Area Of Effect Flashlight", ref SelectedProfile.AOE);
-            GUITools.DrawCheckbox("Rainbow", ref SelectedProfile.Rainbow);
-            GUILayout.EndVertical();
-            GUILayout.EndArea();
+            DrawProfile((0, 130), SelectedProfile);
         }
 
         private static string searchValue = "";
         private static void DrawProfileList()
         {
+            if (GUILayout.Button("Home")) { SelectedProfile = null; HomePage = true; }
             GUILayout.BeginHorizontal();
             GUILayout.Label($"Player Flashlight: {PlayerFlashlightProfile.Value}");
             GUILayout.Label($"Others Flashlight: {OthersFlashlightProfile.Value}");
@@ -294,7 +219,7 @@ namespace Flashlight
             {
                 string profileName = Path.GetFileNameWithoutExtension(filePath);
                 if (!Profiles.ContainsKey(profileName)) Profiles.Add(profileName, LoadProfile(profileName));
-                if (!profileName.Contains(searchValue) && searchValue != "") return;
+                if (!profileName.ToLower().Contains(searchValue.ToLower()) && searchValue != "") return;
                 if (GUILayout.Button(profileName))
                 {
                     SelectedProfile = Profiles[profileName];
