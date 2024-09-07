@@ -41,7 +41,7 @@ namespace Flashlight
             OthersFlashlightColor = LoadColor("OthersFlashlight");
             PlayerFlashlightRainbow = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Rainbow", false);
             OthersFlashlightRainbow = BepinPlugin.instance.Config.Bind("OthersFlashlight", "Rainbow", false);
-            RainbowSpeed = BepinPlugin.instance.Config.Bind("RainbowFlashlight", "Speed", 1f);
+            RainbowSpeed = BepinPlugin.instance.Config.Bind("RainbowFlashlight", "Speed", 0.125f);
             PlayerFlashlightAOE = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "AOE", false);
             OthersFlashlightAOE = BepinPlugin.instance.Config.Bind("OthersFlashlight", "AOE", false);
             PlayerFlashlightAngle = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Angle", DefaultAngle);
@@ -64,7 +64,7 @@ namespace Flashlight
         {
 
             GUITools.DrawCheckbox("Seperate Flashlight Options For Local Player", ref SeperateFlashlights);
-            DrawLabeledSlider("Rainbow Flashlight Speed", ref RainbowSpeed, 0f, 10f, 1f);
+            DrawLabeledSlider("Rainbow Flashlight Speed", ref RainbowSpeed, 0f, 0.4f, 0.125f);
 
 
             GUILayout.BeginArea(new Rect(0, 120, 450, 315), "", "Box");
@@ -75,8 +75,8 @@ namespace Flashlight
             }
             GUILayout.Space(160);
             GUILayout.BeginVertical("Box");
-            DrawLabeledSlider("Angle", ref PlayerFlashlightAngle, 15f, 360f, DefaultAngle);
-            DrawLabeledSlider("Range", ref PlayerFlashlightRange, 0, 10000, DefaultRange);
+            DrawLabeledSlider("Angle", ref PlayerFlashlightAngle, 15f, 160, DefaultAngle);
+            DrawLabeledSlider("Range", ref PlayerFlashlightRange, 0, 100, DefaultRange);
             DrawLabeledSlider("Intensity", ref PlayerFlashlightIntensity, 0, 10000, DefaultIntensity);
             GUITools.DrawCheckbox("Area Of Effect Flashlight", ref PlayerFlashlightAOE);
             GUITools.DrawCheckbox("Rainbow", ref PlayerFlashlightRainbow);
@@ -91,8 +91,8 @@ namespace Flashlight
             }
             GUILayout.Space(160);
             GUILayout.BeginVertical("Box");
-            DrawLabeledSlider("Angle", ref OthersFlashlightAngle, 15f, 360f, DefaultAngle);
-            DrawLabeledSlider("Range", ref OthersFlashlightRange, 0, 10000, DefaultRange);
+            DrawLabeledSlider("Angle", ref OthersFlashlightAngle, 15f, 160, DefaultAngle);
+            DrawLabeledSlider("Range", ref OthersFlashlightRange, 0, 100, DefaultRange);
             DrawLabeledSlider("Intensity", ref OthersFlashlightIntensity, 0, 10000, DefaultIntensity);
             GUITools.DrawCheckbox("Area Of Effect Flashlight", ref OthersFlashlightAOE);
             GUITools.DrawCheckbox("Rainbow", ref OthersFlashlightRainbow);
@@ -103,7 +103,7 @@ namespace Flashlight
         public static void DrawLabeledSlider(string label, ref ConfigEntry<float> value, float minValue, float maxValue, float defaultValue)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"{label} {value.Value:F2}", GUILayout.Width(230));
+            GUILayout.Label($"{label} {value.Value:F3}", GUILayout.Width(230));
             if (GUILayout.Button("Reset", GUILayout.Width(60)))
             {
                 value.Value = defaultValue;
