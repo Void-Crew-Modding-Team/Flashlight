@@ -277,6 +277,8 @@ namespace Flashlight
             GUILayout.EndVertical();
             GUILayout.EndArea();
         }
+
+        private static string searchValue = "";
         private static void DrawProfileList()
         {
             GUILayout.BeginHorizontal();
@@ -284,10 +286,15 @@ namespace Flashlight
             GUILayout.Label($"Others Flashlight: {OthersFlashlightProfile.Value}");
             GUILayout.EndHorizontal();
             string[] profileFiles = Directory.GetFiles(BepinPlugin.profilesDirectiory, "*.cfg");
+            if (DrawTextField("Search", ref searchValue, "", 200))
+            {
+                Profiles.Add(searchValue, LoadProfile(searchValue));
+            }
             foreach (string filePath in profileFiles)
             {
                 string profileName = Path.GetFileNameWithoutExtension(filePath);
                 if (!Profiles.ContainsKey(profileName)) Profiles.Add(profileName, LoadProfile(profileName));
+                if (!profileName.Contains(searchValue) && searchValue != "") return;
                 if (GUILayout.Button(profileName))
                 {
                     SelectedProfile = Profiles[profileName];
