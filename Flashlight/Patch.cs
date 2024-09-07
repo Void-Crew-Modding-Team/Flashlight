@@ -13,14 +13,14 @@ namespace Flashlight
         {
             if (playerFlashlights.TryGetValue(__instance, out Light flashlight))
             {
-                if (__instance is LocalPlayer && !Configs.matchFlashlights)
+                if (__instance is LocalPlayer && !Configs.MatchFlashlights.Value)
                 {
                     flashlight.color = Configs.PlayerFlashlightColor;
-                    if (Configs.playerFlashlightRainbow) flashlight.color = GetRainbowColor();
+                    if (Configs.PlayerFlashlightRainbow.Value) flashlight.color = GetRainbowColor();
                     return;
                 }
                 flashlight.color = Configs.OthersFlashlightColor;
-                if (Configs.othersFlashlightRainbow) flashlight.color = GetRainbowColor();
+                if (Configs.OthersFlashlightRainbow.Value) flashlight.color = GetRainbowColor();
             }
             else
             {
@@ -30,7 +30,7 @@ namespace Flashlight
         }
         private static Color GetRainbowColor()
         {
-            float hue = (Time.time * Configs.rainbowSpeed) % 1f;
+            float hue = (Time.time * Configs.RainbowSpeed.Value) % 1f;
             return Color.HSVToRGB(hue, 1f, 1f);
         }
     }
