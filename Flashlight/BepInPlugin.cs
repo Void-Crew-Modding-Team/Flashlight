@@ -37,6 +37,7 @@ namespace Flashlight
         internal static void Load()
         {
             SeperateFlashlights = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Enabled", false);
+            PrecisionMode = BepinPlugin.instance.Config.Bind("PrecisionMode", "Enabled", true);
             PlayerFlashlightColor = LoadColor("PlayerFlashlight");
             OthersFlashlightColor = LoadColor("OthersFlashlight");
             PlayerFlashlightRainbow = BepinPlugin.instance.Config.Bind("PlayerFlashlight", "Rainbow", false);
@@ -65,9 +66,9 @@ namespace Flashlight
 
             GUITools.DrawCheckbox("Seperate Flashlight Options For Local Player", ref SeperateFlashlights);
             DrawLabeledSlider("Rainbow Flashlight Speed", ref RainbowSpeed, 0f, 0.4f, 0.125f);
+            GUITools.DrawCheckbox("Precision Range and Intensity", ref PrecisionMode);
 
-
-            GUILayout.BeginArea(new Rect(0, 120, 450, 315), "", "Box");
+            GUILayout.BeginArea(new Rect(0, 130, 450, 315), "", "Box");
             GUILayout.Label("Local Flashlight");
             if (GUITools.DrawColorPicker(new Rect(4, 30, 442, 160), "Colour", ref Configs.PlayerFlashlightColor, Configs.DefaultColor, false, 0f, 1f))
             {
@@ -76,14 +77,14 @@ namespace Flashlight
             GUILayout.Space(160);
             GUILayout.BeginVertical("Box");
             DrawLabeledSlider("Angle", ref PlayerFlashlightAngle, 15f, 160, DefaultAngle);
-            DrawLabeledSlider("Range", ref PlayerFlashlightRange, 0, 100, DefaultRange);
-            DrawLabeledSlider("Intensity", ref PlayerFlashlightIntensity, 0, 10000, DefaultIntensity);
+            DrawLabeledSlider("Range", ref PlayerFlashlightRange, 0, (PrecisionMode.Value? 25 : 100), DefaultRange);
+            DrawLabeledSlider("Intensity", ref PlayerFlashlightIntensity, 0, (PrecisionMode.Value ? 1000 : 10000), DefaultIntensity);
             GUITools.DrawCheckbox("Area Of Effect Flashlight", ref PlayerFlashlightAOE);
             GUITools.DrawCheckbox("Rainbow", ref PlayerFlashlightRainbow);
             GUILayout.EndVertical();
             GUILayout.EndArea();
 
-            GUILayout.BeginArea(new Rect(458, 120, 450, 315), "", "Box");
+            GUILayout.BeginArea(new Rect(458, 130, 450, 315), "", "Box");
             GUILayout.Label("Other Flashlights");
             if (GUITools.DrawColorPicker(new Rect(4, 30, 442, 160), "Colour", ref Configs.OthersFlashlightColor, Configs.DefaultColor, false, 0f, 1f))
             {
@@ -92,8 +93,8 @@ namespace Flashlight
             GUILayout.Space(160);
             GUILayout.BeginVertical("Box");
             DrawLabeledSlider("Angle", ref OthersFlashlightAngle, 15f, 160, DefaultAngle);
-            DrawLabeledSlider("Range", ref OthersFlashlightRange, 0, 100, DefaultRange);
-            DrawLabeledSlider("Intensity", ref OthersFlashlightIntensity, 0, 10000, DefaultIntensity);
+            DrawLabeledSlider("Range", ref OthersFlashlightRange, 0, (PrecisionMode.Value ? 25 : 100), DefaultRange);
+            DrawLabeledSlider("Intensity", ref OthersFlashlightIntensity, 0, (PrecisionMode.Value ? 1000 : 10000), DefaultIntensity);
             GUITools.DrawCheckbox("Area Of Effect Flashlight", ref OthersFlashlightAOE);
             GUITools.DrawCheckbox("Rainbow", ref OthersFlashlightRainbow);
             GUILayout.EndVertical();
@@ -120,6 +121,7 @@ namespace Flashlight
         }
 
         internal static ConfigEntry<bool> SeperateFlashlights;
+        internal static ConfigEntry<bool> PrecisionMode;
         internal static Color PlayerFlashlightColor; internal static Color OthersFlashlightColor;
         internal static ConfigEntry<bool> PlayerFlashlightRainbow; internal static ConfigEntry<bool> OthersFlashlightRainbow;
         internal static ConfigEntry<bool> PlayerFlashlightAOE; internal static ConfigEntry<bool> OthersFlashlightAOE;

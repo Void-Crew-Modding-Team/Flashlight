@@ -1,0 +1,6 @@
+Future Feature Ideas
+- Savable Profiles for colours
+- Match flashlight to face colour
+- Savable flashlight to player
+- Different pages for different profiles (Players and Saved Profiles)
+- Insert different flashlight cookies (Look to Crosshair Changer)
