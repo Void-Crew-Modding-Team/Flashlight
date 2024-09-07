@@ -160,12 +160,6 @@ if($PluginDescription.Length -gt 250)
 	Exit 2
 }
 
-# Thunderstore Plugin Name
-if(-not $ThunderstorePluginName)
-{
-    $ThunderstorePluginName = $UserPluginName.Replace(" ", "_")
-}
-
 
 ### Update .csproj file.
 Write-Output "Updating CSProj file..."
@@ -205,6 +199,12 @@ $CSProjXML.Save($CSProjDir.FullName)
 if(-Not $UserPluginName)
 {
 	$UserPluginName = $PluginName
+}
+
+# Thunderstore Plugin Name
+if(-not $ThunderstorePluginName)
+{
+    $ThunderstorePluginName = $UserPluginName.Replace(" ", "_")
 }
 
 

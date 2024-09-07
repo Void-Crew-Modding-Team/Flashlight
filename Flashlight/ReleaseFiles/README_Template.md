@@ -6,32 +6,28 @@
 
 Version [ModVersion]  
 For Game Version [GameVersion]  
-Developed by [Authors]  
+Developed by [Authors]
 Requires VoidManager [VoidManagerVersion]
 
 
 ---------------------
 
-### 💡 Function(s)
-
-- [Description]
+### 💡 Function - [Description]
 
 ### 🎮 Client Usage
 
-- 
+- Enter the F5 Menu labelled `[UserModName] Config` to customise flashlights.
 
-### 👥 Multiplayer Functionality
+### 👥 Flashlight import / export
+
+Drag and drop `[ProfileName].cfg` into `Void Crew\BepInEx\config\FlashlightProfiles`
+
+For exporting, take said file and share it.
 
 
 # Note to mod developer: Remove all but one, and describe any custom functionality.
 - ✅ Client
-  - Only the client needs this mod.
-- ✅ Host
-  - Only the host needs this mod.
-- ✅ Session
-  - Requires the room to be marked as Mod_Session.
-- ✅ All
-  - All players must have this mod installed.
+  - Only the client needs and can see this mods effects.
 
 ---------------------
 
