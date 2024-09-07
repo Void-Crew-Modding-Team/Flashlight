@@ -48,7 +48,15 @@ namespace Flashlight
     }
     public class Configs : ModSettingsMenu
     {
-        public override string Name() => $"{MyPluginInfo.PLUGIN_NAME} Config";
+        public override string Name()
+        {
+            if (HomePage)
+                return $"{MyPluginInfo.PLUGIN_NAME} Config - Home Page";
+            else if (SelectedProfile == null)
+                return $"{MyPluginInfo.PLUGIN_NAME} Config - Profile List";
+            else
+                return $"{MyPluginInfo.PLUGIN_NAME} Config - Editing Profile: {SelectedProfile}";
+        }
         
         private static Color DefaultColor = Color.white;
         private static float DefaultAngle = 45.1f;
@@ -104,7 +112,7 @@ namespace Flashlight
         
         internal static void DrawProfile((float,float) loc, ProfileData profile) // new Rect(0, 130, 450, 315)
         {
-            GUILayout.BeginArea(new Rect(loc.Item1, loc.Item2, 450, 315), "", "Box");
+            GUILayout.BeginArea(new Rect(loc.Item1, loc.Item2, 466, 315), "", "Box");
             GUILayout.Label(profile.Name);
             if (GUITools.DrawColorPicker(new Rect(4, 30, 442, 160), "Colour", ref profile.Colour, Configs.DefaultColor, false, 0f, 1f))
             {
@@ -176,9 +184,9 @@ namespace Flashlight
             if (GUILayout.Button($"Others Flashlight: {OthersFlashlightProfile.Value}")) { SelectedProfile = othersFlashlight; HomePage = false; }
             GUILayout.EndHorizontal();
 
-            DrawProfile((0,130), playerFlashlight);
-            DrawProfile((458, 130), othersFlashlight);
-        }
+            DrawProfile((4,130), playerFlashlight);
+            DrawProfile((476, 130), othersFlashlight);
+        } // 494
         private static void DrawProfile()
         {
             if (GUILayout.Button("Back to Flashlight Profile list")) SelectedProfile = null;
@@ -199,7 +207,7 @@ namespace Flashlight
             }
             GUILayout.EndHorizontal();
 
-            DrawProfile((0, 130), SelectedProfile);
+            DrawProfile((4, 130), SelectedProfile);
         }
 
         private static string searchValue = "";
