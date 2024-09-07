@@ -14,6 +14,20 @@ Requires VoidManager [VoidManagerVersion]
 
 ### 💡 Function - [Description]
 
+- Can change Player flashlight options  (Locally visible)
+- Can change Other players flashlight options (Locally visible)
+
+Flashlight options
+	- Colour
+	- Radius
+	- Range
+	- Intensity
+	- Area of effect Flashlight
+	- Rainbow mode (Synced)
+
+- Flashlight options are saved as profiles.
+- Flashlight profiles can be imported or exported.
+
 ### 🎮 Client Usage
 
 - Enter the F5 Menu labelled `[UserModName] Config` to customise flashlights.
@@ -25,7 +39,8 @@ Drag and drop `[ProfileName].cfg` into `Void Crew\BepInEx\config\FlashlightProfi
 For exporting, take said file and share it.
 
 
-# Note to mod developer: Remove all but one, and describe any custom functionality.
+### 👥 Multiplayer Functionality
+
 - ✅ Client
   - Only the client needs and can see this mods effects.
 
