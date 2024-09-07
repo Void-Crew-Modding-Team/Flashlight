@@ -71,7 +71,7 @@ namespace Flashlight
             GUILayout.Label("Local Flashlight");
             if (GUITools.DrawColorPicker(new Rect(4, 30, 442, 160), "Colour", ref Configs.PlayerFlashlightColor, Configs.DefaultColor, false, 0f, 1f))
             {
-                UpdateFlashlightColor("PlayerFlashlightColour", PlayerFlashlightColor);
+                UpdateFlashlightColor("PlayerFlashlight", PlayerFlashlightColor);
             }
             GUILayout.Space(160);
             GUILayout.BeginVertical("Box");
@@ -87,7 +87,7 @@ namespace Flashlight
             GUILayout.Label("Other Flashlights");
             if (GUITools.DrawColorPicker(new Rect(4, 30, 442, 160), "Colour", ref Configs.OthersFlashlightColor, Configs.DefaultColor, false, 0f, 1f))
             {
-                UpdateFlashlightColor("OthersFlashlightColour", OthersFlashlightColor);
+                UpdateFlashlightColor("OthersFlashlight", OthersFlashlightColor);
             }
             GUILayout.Space(160);
             GUILayout.BeginVertical("Box");
