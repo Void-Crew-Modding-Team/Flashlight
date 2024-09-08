@@ -55,7 +55,7 @@ namespace Flashlight
             else if (SelectedProfile == null)
                 return $"{MyPluginInfo.PLUGIN_NAME} Config - Profile List";
             else
-                return $"{MyPluginInfo.PLUGIN_NAME} Config - Editing Profile: {SelectedProfile}";
+                return $"{MyPluginInfo.PLUGIN_NAME} Config - Editing Profile: {SelectedProfile.Name}";
         }
         
         private static Color DefaultColor = Color.white;
@@ -112,6 +112,7 @@ namespace Flashlight
         
         internal static void DrawProfile((float,float) loc, ProfileData profile) // new Rect(0, 130, 450, 315)
         {
+            if (profile == null) return;
             GUILayout.BeginArea(new Rect(loc.Item1, loc.Item2, 466, 345), "", "Box");
             GUILayout.Label(profile.Name);
             if (GUITools.DrawColorPicker(new Rect(4, 30, 458, 160), "Colour", ref profile.Colour, Configs.DefaultColor, false, 0f, 1f))
@@ -145,7 +146,6 @@ namespace Flashlight
                 if (GUILayout.Button("Reset"))
                 {
                     value = defaultValue;
-                    changed = true;
                 }
             }
             if (GUILayout.Button("Create"))
@@ -215,6 +215,7 @@ namespace Flashlight
         }
 
         private static string searchValue = "";
+        internal static string[] profileFiles;
         private static void DrawProfileList()
         {
             if (GUILayout.Button("Home")) { SelectedProfile = null; HomePage = true; }
@@ -222,23 +223,65 @@ namespace Flashlight
             GUILayout.Label($"Player Flashlight: {PlayerFlashlightProfile.Value}");
             GUILayout.Label($"Others Flashlight: {OthersFlashlightProfile.Value}");
             GUILayout.EndHorizontal();
-            string[] profileFiles = Directory.GetFiles(BepinPlugin.profilesDirectiory, "*.cfg");
+            profileFiles = Directory.GetFiles(BepinPlugin.profilesDirectiory, "*.cfg");
             if (DrawTextField("Search", ref searchValue, "", 200))
             {
-                Profiles.Add(searchValue, LoadProfile(searchValue));
+                string newProfileName = searchValue;
+                int counter = 1;
+                do
+                {
+                    // If a profile with the current name exists, append or update the number in brackets
+                    newProfileName = (counter == 1) ? searchValue : $"{searchValue} ({counter})";
+                    counter++;
+                }
+                while (Profiles.ContainsKey(newProfileName));
+                Profiles.Add(newProfileName, LoadProfile(newProfileName));
             }
-            foreach (string filePath in profileFiles)
+            for (int i = 0; i < profileFiles.Count(); i++)
             {
+                string filePath = profileFiles[i];
                 string profileName = Path.GetFileNameWithoutExtension(filePath);
                 if (!Profiles.ContainsKey(profileName)) Profiles.Add(profileName, LoadProfile(profileName));
-                if (!profileName.ToLower().Contains(searchValue.ToLower()) && searchValue != "") return;
+                if (searchValue != "" && !profileName.ToLower().Contains(searchValue.ToLower())) continue;
+                GUILayout.BeginHorizontal();
                 if (GUILayout.Button(profileName))
                 {
                     SelectedProfile = Profiles[profileName];
                 }
+                if (GUILayout.Button("X", GUILayout.Width(20))) DeleteProfileFile(profileName);
+                GUILayout.EndHorizontal();
             }
         }
 
+        public static void DeleteProfileFile(string profileName)
+        {
+            string filePath = Path.Combine(BepinPlugin.profilesDirectiory, $"{profileName}.cfg");
+            if (Profiles.ContainsKey(profileName))
+            {
+                Profiles[profileName].ConfigFile.Clear();
+                Profiles.Remove(profileName);
+            }
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+            if (PlayerFlashlightProfile.Value == profileName)
+            {
+                PlayerFlashlightProfile.Value = "default";
+                playerFlashlight = LoadProfile("default");
+            }
+            if (OthersFlashlightProfile.Value == profileName)
+            {
+                OthersFlashlightProfile.Value = "default";
+                othersFlashlight = LoadProfile("default");
+            }
+            if (profileName == "default")
+            {
+                LoadProfile("default");
+                return;
+            }
+            BepinPlugin.Log.LogInfo($"[Flashlights] Deleted Profile {profileName}");
+        }
         internal static ConfigEntry<bool> SeperateFlashlights;
         internal static ConfigEntry<bool> PrecisionMode;
         internal static ConfigEntry<float> RainbowSpeed;

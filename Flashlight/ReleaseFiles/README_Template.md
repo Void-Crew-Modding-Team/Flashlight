@@ -6,7 +6,7 @@
 
 Version [ModVersion]  
 For Game Version [GameVersion]  
-Developed by [Authors]
+Developed by [Authors]  
 Requires VoidManager [VoidManagerVersion]
 
 
@@ -17,16 +17,22 @@ Requires VoidManager [VoidManagerVersion]
 - Can change Player flashlight options  (Locally visible)
 - Can change Other players flashlight options (Locally visible)
 
-Flashlight options
-	- Colour
-	- Radius
-	- Range
-	- Intensity
-	- Area of effect Flashlight
-	- Rainbow mode (Synced)
+#### *Flashlight Customisation Options*
+- Colour
+- Radius
+- Range
+- Intensity
+- Area of effect Flashlight
+- Rainbow mode (Synced)
 
-- Flashlight options are saved as profiles.
-- Flashlight profiles can be imported or exported.
+Flashlight options are saved as profiles.
+
+#### *Flashlight Profile Options*
+- Import and export.
+- Create
+- Search
+- Edit
+- Delete
 
 ### 🎮 Client Usage
 
